@@ -1,15 +1,32 @@
 package com.example.annotamobile.ui.login;
 
+import android.content.Context;
+import android.util.Log;
+import android.util.Patterns;
+import android.widget.Toast;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import android.util.Patterns;
-
-import com.example.annotamobile.data.LoginRepository;
-import com.example.annotamobile.data.Result;
-import com.example.annotamobile.data.model.LoggedInUser;
+import com.example.annotamobile.DataRepository;
+import com.example.annotamobile.FileIO;
 import com.example.annotamobile.R;
+import com.example.annotamobile.data.LoginRepository;
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.AsyncHttpResponseHandler;
+import com.loopj.android.http.RequestParams;
+
+import org.json.JSONArray;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
+
+import cz.msebera.android.httpclient.Header;
+import cz.msebera.android.httpclient.conn.ConnectTimeoutException;
+
+import static com.example.annotamobile.DataRepository.*;
+import static com.example.annotamobile.ui.login.LoginActivity.getLoginContext;
 
 public class LoginViewModel extends ViewModel {
 
@@ -29,15 +46,44 @@ public class LoginViewModel extends ViewModel {
         return loginResult;
     }
 
-    public void login(String username, String password) {
-        // can be launched in a separate asynchronous job
-        Result<LoggedInUser> result = loginRepository.login(username, password);
+    public void login(String username, String password, Context context) {
 
-        if (result instanceof Result.Success) {
-            LoggedInUser data = ((Result.Success<LoggedInUser>) result).getData();
-            loginResult.setValue(new LoginResult(new LoggedInUserView(data.getDisplayName())));
-        } else {
-            loginResult.setValue(new LoginResult(R.string.login_failed));
+        try {
+            AsyncHttpClient client = new AsyncHttpClient();
+            // Http Request Params Object
+            RequestParams params = new RequestParams();
+            params.put("data", "LOGIN;" + username + ";" + password);
+            client.post(DataRepository.server_url, params, new AsyncHttpResponseHandler() {
+                @Override
+                public void onSuccess(int statusCode, Header[] headers, byte[] response) {
+                    try {
+                        //save uid and name for future use
+                        String response_string = new String(response, StandardCharsets.UTF_8);
+
+                        //check if login was successful
+                        if (!Objects.equals(response_string, bad_login)) {
+                            FileIO fileIO = new FileIO();
+                            fileIO.writeToFile(response_string, auth_key_filename, context);
+                            //login user
+                            String s = new String(response, StandardCharsets.UTF_8);
+                            loginResult.setValue(new LoginResult(new LoggedInUserView(s.split(";")[1])));
+                        } else {
+                            loginResult.setValue(new LoginResult(R.string.login_failed));
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
+                    // called when response HTTP status is "4XX" (eg. 401, 403, 404)
+                    //check for timeout
+                    loginResult.setValue(new LoginResult(R.string.no_internet));
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -65,6 +111,6 @@ public class LoginViewModel extends ViewModel {
 
     // A placeholder password validation check
     private boolean isPasswordValid(String password) {
-        return password != null && password.trim().length() > 5;
+        return password != null && password.trim().length() > 4;
     }
 }

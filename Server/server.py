@@ -29,6 +29,21 @@ def create_connection(db_file):
     return conn
 
 def checkUserPassword(email, password):
+    #first check that email exists before querying for passwords
+    sql = "SELECT email FROM user_data"
+    cur = conn.cursor()
+    cur.execute(sql)
+    real_emails = cur.fetchall()
+    emailExists = False
+    for emails in real_emails:
+        if (email == emails[0]):
+            emailExists = True
+    
+    #if email is invalid, return INVALID_LOGIN
+    if (not emailExists):
+        message(2,"REQUEST DENIED : Invalid email")
+        return "INVALID_LOGIN"
+
     sql = "SELECT password FROM user_data WHERE email=\"" + email +"\""
     cur = conn.cursor()
     cur.execute(sql)
@@ -64,7 +79,7 @@ def checkUserPassword(email, password):
         uids = cur.fetchall()[0][0]
         return user_uuid + ";" + uids #uids is name here, didn't make a new variable
     else:
-        message(2,"REQUEST DENIED")
+        message(2,"REQUEST DENIED : Invalid password")
         return "INVALID_LOGIN"
 
 def checkUID(uuid):
@@ -77,7 +92,10 @@ def checkUID(uuid):
 
     for uuid_sublist in real_uuids:
         for uuids in uuid_sublist:
-            if "/" in uuids:
+            if (uuids is None):
+                #catch nonetype since this usually throws an error
+                message(1,"Real uuid []")
+            elif ("/" in uuids):
                 #multiple uuids in database
                 real_uuid_list = uuids.split("/")
                 for real_uuid in real_uuid_list:

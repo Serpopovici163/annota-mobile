@@ -1,8 +1,8 @@
 package com.example.annotamobile.ui.login;
 
+import androidx.annotation.NonNull;
 import androidx.lifecycle.ViewModel;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.annotation.NonNull;
 
 import com.example.annotamobile.data.LoginDataSource;
 import com.example.annotamobile.data.LoginRepository;
