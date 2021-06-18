@@ -33,6 +33,9 @@ def checkUserPassword(email, password):
     cur = conn.cursor()
     cur.execute(sql)
     real_password = cur.fetchall()[0][0]
+
+    message(1,"Got email [" + email + "] and password [" + password + "] whereas real password is [" + real_password + "]")
+
     if (password == real_password):
         #generate UID and assign it to sql database before returning it to user
         user_uuid = str(uuid.uuid1())
@@ -61,25 +64,31 @@ def checkUserPassword(email, password):
         uids = cur.fetchall()[0][0]
         return user_uuid + ";" + uids #uids is name here, didn't make a new variable
     else:
+        message(2,"REQUEST DENIED")
         return "INVALID_LOGIN"
 
 def checkUID(uuid):
     sql = "SELECT uids FROM user_data"
     cur = conn.cursor()
     cur.execute(sql)
-    real_uuids = cur.fetchall()[0]
+    real_uuids = cur.fetchall()
 
-    for uuids in real_uuids:
-        if "/" in uuids:
-            #multiple uuids in database
-            real_uuid_list = uuids.split("/")
-            for real_uuid in real_uuid_list:
-                if uuid == real_uuid:
+    message(1,"Got uuid [" + uuid + "]")
+
+    for uuid_sublist in real_uuids:
+        for uuids in uuid_sublist:
+            if "/" in uuids:
+                #multiple uuids in database
+                real_uuid_list = uuids.split("/")
+                for real_uuid in real_uuid_list:
+                    message(1,"Real uuid [" + real_uuid + "]")
+                    if uuid == real_uuid:
+                        return True
+            else:
+                #single uuid
+                message(1,"Real uuid [" + uuids + "]")
+                if uuid == uuids:
                     return True
-        else:
-            #single uuid
-            if uuid == uuids:
-                return True
     return False
 
 def handleRequest(data):
