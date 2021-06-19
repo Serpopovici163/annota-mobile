@@ -1,23 +1,12 @@
 import sqlite3
 from sqlite3 import Error
 from http.server import BaseHTTPRequestHandler, HTTPServer
-import uuid
 
-hostName = "192.168.23.195"
-serverPort = 8080
-database = r"annota.db"
+#our files
+import essentials
+import login
+
 conn = None
-
-def message(priority, message):
-    if (priority == 1):
-        #Debug
-        print("[DEBUG] : " + message)
-    elif (priority == 2):
-        #Warning
-        print("[WARNING] : " + message)
-    elif (priority == 3):
-        #Warning
-        print("[ERROR] : " + message)
 
 def create_connection(db_file):
     conn = None
@@ -28,110 +17,36 @@ def create_connection(db_file):
 
     return conn
 
-def checkUserPassword(email, password):
-    #first check that email exists before querying for passwords
-    sql = "SELECT email FROM user_data"
-    cur = conn.cursor()
-    cur.execute(sql)
-    real_emails = cur.fetchall()
-    emailExists = False
-    for emails in real_emails:
-        if (email == emails[0]):
-            emailExists = True
-    
-    #if email is invalid, return INVALID_LOGIN
-    if (not emailExists):
-        message(2,"REQUEST DENIED : Invalid email")
-        return "INVALID_LOGIN"
-
-    sql = "SELECT password FROM user_data WHERE email=\"" + email +"\""
-    cur = conn.cursor()
-    cur.execute(sql)
-    real_password = cur.fetchall()[0][0]
-
-    message(1,"Got email [" + email + "] and password [" + password + "] whereas real password is [" + real_password + "]")
-
-    if (password == real_password):
-        #generate UID and assign it to sql database before returning it to user
-        user_uuid = str(uuid.uuid1())
-        message(1,"Login success! Assigning UUID [" + user_uuid + "]")
-
-        #get UIDs from database in case there are pre-existing ones
-        sql = "SELECT uids FROM user_data WHERE email=\"" + email +"\""
-        cur = conn.cursor()
-        cur.execute(sql)
-        uids = cur.fetchall()[0][0]
-
-        if (uids == ""):
-            uids = user_uuid
-        else:
-            uids = uids + "/" + user_uuid
-
-        #TODO add uid to database since this code doesn't do that
-        sql = "UPDATE user_data SET uids=\"" + uids + "\"WHERE email=\"" + email + "\""
-        cur = conn.cursor()
-        cur.execute(sql)
-        conn.commit()
-
-        sql = "SELECT name FROM user_data WHERE email=\"" + email +"\""
-        cur = conn.cursor()
-        cur.execute(sql)
-        uids = cur.fetchall()[0][0]
-        return user_uuid + ";" + uids #uids is name here, didn't make a new variable
-    else:
-        message(2,"REQUEST DENIED : Invalid password")
-        return "INVALID_LOGIN"
-
-def checkUID(uuid):
-    sql = "SELECT uids FROM user_data"
-    cur = conn.cursor()
-    cur.execute(sql)
-    real_uuids = cur.fetchall()
-
-    message(1,"Got uuid [" + uuid + "]")
-
-    for uuid_sublist in real_uuids:
-        for uuids in uuid_sublist:
-            if (uuids is None):
-                #catch nonetype since this usually throws an error
-                message(1,"Real uuid []")
-            elif ("/" in uuids):
-                #multiple uuids in database
-                real_uuid_list = uuids.split("/")
-                for real_uuid in real_uuid_list:
-                    message(1,"Real uuid [" + real_uuid + "]")
-                    if uuid == real_uuid:
-                        return True
-            else:
-                #single uuid
-                message(1,"Real uuid [" + uuids + "]")
-                if uuid == uuids:
-                    return True
-    return False
-
 def handleRequest(data):
     data_split = data.split(';')
     if (data_split[0] == 'LOGIN'):
         #login request, email will be index 1 and password index 2
-        message(1,"Received LOGIN request")
-        return checkUserPassword(data_split[1], data_split[2])
+        essentials.message(1,"Received LOGIN request")
+        return login.checkUserPassword(conn, data_split[1], data_split[2])
     elif (data_split[0] == 'KEYCHECK'):
         #client has pre-existing auth key
-        message(1, "Received AUTH KEY check request")
+        essentials.message(1, "Received AUTH KEY check request")
         data_split[1] = data_split[1].replace("%0A", "")
 
         #get each uid from the table and check if given uid exists
-        if (checkUID(data_split[1])):
+        if (login.checkUID(conn, data_split[1], data_split[2])):
             #valid uuid
-            message(1, "REQUEST VALIDATED")
+            essentials.message(1, "REQUEST VALIDATED")
             return "AUTH_KEY_VALID"
         else:
-            message(1, "Invalid AUTH KEY")
-            message(3, "REQUEST DENIED")
+            essentials.message(1, "Invalid AUTH KEY")
+            essentials.message(3, "REQUEST DENIED")
             return "AUTH_KEY_DENIED"
+    elif (data_split[0] == 'LOGOUT'):
+        essentials.message(1, "Received LOGOUT deauthing key [" + data_split[1] + "]")
+        login.logout(conn,data_split[1],data_split[2])
+        return "LOGOUT_DONE"
+    elif (data_split[0] == 'REGISTER'):
+        essentials.message(1, "Registering email [" + data_split[1] + "]")
+        return login.register(conn,data_split[1],data_split[2],data_split[3]) #args are: conn, email, password, name
     else:
-        message(3, "Invalid request type")
-        message(1, data)
+        essentials.message(3, "Invalid request type")
+        essentials.message(1, data)
         return "INVALID_REQUEST_TYPE"
 
 class MyServer (BaseHTTPRequestHandler):
@@ -139,15 +54,13 @@ class MyServer (BaseHTTPRequestHandler):
         self.send_response_only(404)
 
     def do_POST(self):
-        print("Got POST")
+        print("\nGot POST")
         content_length = int(self.headers['Content-Length'])
         post_data = self.rfile.read(content_length)
         #got data, now we can differentiate request, first we need to reformat the string from what was sent. Any special characters will be messed up (passwords may be an issue)
-        #TODO change all special characters from %xx to whatever they should be, I think xx is hex for ASCII codes but I'm not smart <-- confirmed but adding "utf-8" to decode() fixed it
-        #FIXED
-        post_data = post_data.decode("utf-8")
-        post_data = post_data.replace("%3B",";")
-        post_data = post_data.replace("%40","@")
+        #TODO change all special characters from %xx to whatever they should be, I think xx is hex for ASCII codes but I'm not smart 
+        #FIXED using removeHex function in essentials
+        post_data = essentials.removeHex(post_data)
         post_data = post_data.replace("data=","")
 
         response = handleRequest(post_data)
@@ -158,9 +71,9 @@ class MyServer (BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(bytes(response,'utf-8'))    
 
-conn = create_connection(database)
-webServer = HTTPServer((hostName, serverPort), MyServer)
-print("Server started http://%s:%s" % (hostName, serverPort))
+conn = create_connection(essentials.database)
+webServer = HTTPServer((essentials.hostName, essentials.serverPort), MyServer)
+print("Server started http://%s:%s" % (essentials.hostName, essentials.serverPort))
 
 try:
     webServer.serve_forever()
