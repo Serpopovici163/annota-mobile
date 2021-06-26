@@ -44,11 +44,18 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
 
-    //mine
+    //for http requests
     implementation 'com.loopj.android:android-async-http:1.4.11'
 
+    //for camera
     def camerax_version = "1.0.0-beta07"
     implementation "androidx.camera:camera-camera2:$camerax_version"
     implementation "androidx.camera:camera-lifecycle:$camerax_version"
     implementation "androidx.camera:camera-view:1.0.0-alpha14"
+
+    //for zooming on imageview
+    implementation "com.github.MikeOrtiz:TouchImageView:3.1.0"
+
+    //for drawing view (used in draw to crop feature)
+    implementation 'com.github.mukeshsolanki:DrawingView-Android:1.0.13'
 }

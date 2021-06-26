@@ -6,12 +6,19 @@
     <string name="title_activity_login">LoginActivity</string>
     <string name="prompt_email">Email</string>
     <string name="prompt_password">Password</string>
-    <string name="action_sign_in">Sign in or register</string>
-    <string name="action_sign_in_short">Sign in</string>
+    <string name="prompt_confirm_password">Confirm Password</string>
+    <string name="prompt_name">Full Name</string>
+    <string name="action_sign_in">Sign in</string>
+    <string name="action_register">Register</string>
     <string name="login_ok_welcome">Welcome </string>
     <string name="invalid_username">Not a valid username</string>
     <string name="invalid_password">Password must be >4 characters</string>
+    <string name="passwords_not_equal">Password not equal, please try again</string>
     <string name="login_failed">Login failed</string>
+    <string name="registration_failed">Registration failed</string>
+    <string name="logout">You have been logged out</string>
     <string name="auto_login_failed">Automatic login failed</string>
     <string name="no_internet">No response from server, check your internet?</string>
+    <string name="incomplete_form">Please fill out all fields in form</string>
+    <string name="photo_button">Take Photo</string>
 </resources>

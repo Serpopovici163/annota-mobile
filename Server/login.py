@@ -1,7 +1,6 @@
 #handles all login, logout, or keycheck type requests
 import essentials
 import uuid
-import re
 
 def checkUserPassword(conn, email, password):
     #first check that email exists before querying for passwords
@@ -40,7 +39,6 @@ def checkUserPassword(conn, email, password):
         else:
             uids = uids + "/" + user_uuid
 
-        #TODO add uid to database since this code doesn't do that
         sql = "UPDATE user_data SET uids=\"" + uids + "\"WHERE email=\"" + email + "\""
         cur = conn.cursor()
         cur.execute(sql)
@@ -110,3 +108,9 @@ def register(conn, email, password, name) :
     conn.commit()
 
     return uid + ";" + name
+
+def getEmail(conn, auth_key):
+    sql = "SELECT email FROM user_data WHERE uids LIKE '%" + auth_key + "%'"
+    cur = conn.cursor()
+    cur.execute(sql)
+    return cur.fetchall()[0][0]

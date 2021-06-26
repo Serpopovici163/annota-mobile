@@ -1,9 +1,7 @@
 package com.example.annotamobile.ui.login;
 
 import android.content.Context;
-import android.util.Log;
 import android.util.Patterns;
-import android.widget.Toast;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -17,16 +15,14 @@ import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 import com.loopj.android.http.RequestParams;
 
-import org.json.JSONArray;
-
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 import cz.msebera.android.httpclient.Header;
-import cz.msebera.android.httpclient.conn.ConnectTimeoutException;
 
-import static com.example.annotamobile.DataRepository.*;
-import static com.example.annotamobile.ui.login.LoginActivity.getLoginContext;
+import static com.example.annotamobile.DataRepository.auth_key_filename;
+import static com.example.annotamobile.DataRepository.bad_login;
+import static com.example.annotamobile.DataRepository.bad_request;
 
 public class LoginViewModel extends ViewModel {
 
@@ -61,7 +57,7 @@ public class LoginViewModel extends ViewModel {
                         String response_string = new String(response, StandardCharsets.UTF_8);
 
                         //check if login was successful
-                        if (!Objects.equals(response_string, bad_login)) {
+                        if (!Objects.equals(response_string, bad_login) || !Objects.equals(response_string, bad_request)) {
                             FileIO fileIO = new FileIO();
                             fileIO.writeToFile(response_string, auth_key_filename, context);
                             //login user

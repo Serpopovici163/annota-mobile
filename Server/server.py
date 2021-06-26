@@ -5,6 +5,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 #our files
 import essentials
 import login
+import transcription
 
 conn = None
 
@@ -38,12 +39,15 @@ def handleRequest(data):
             essentials.message(3, "REQUEST DENIED")
             return "AUTH_KEY_DENIED"
     elif (data_split[0] == 'LOGOUT'):
-        essentials.message(1, "Received LOGOUT deauthing key [" + data_split[1] + "]")
+        essentials.message(1, "Received LOGOUT request, deauthing key [" + data_split[1] + "]")
         login.logout(conn,data_split[1],data_split[2])
         return "LOGOUT_DONE"
     elif (data_split[0] == 'REGISTER'):
-        essentials.message(1, "Registering email [" + data_split[1] + "]")
+        essentials.message(1, "Received REGISTER request [" + data_split[1] + "]")
         return login.register(conn,data_split[1],data_split[2],data_split[3]) #args are: conn, email, password, name
+    elif (data_split[0] == 'TRANSCRIBE'):
+        essentials.message(1, "Received TRANSCRIBE request")
+        return transcription.transcribeImage(conn, data_split[1], data_split[2], data_split[3], data_split[4])
     else:
         essentials.message(3, "Invalid request type")
         essentials.message(1, data)
