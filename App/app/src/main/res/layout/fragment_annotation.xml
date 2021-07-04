@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:background="@color/design_default_color_background"
+    tools:context=".AnnotationFragment">
+
+
+    <EditText
+        android:id="@+id/annotationName"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="75dp"
+        android:layout_marginEnd="24dp"
+        android:textSize="24dp"
+        android:gravity="center"
+        android:hint="@string/annotation_name"
+        android:textColorHint="@color/hint_color"
+        android:textColor="@color/black"/>
+
+    <View android:background="@color/purple_500"
+        android:layout_width = "match_parent"
+        android:layout_height="3dp"
+        android:layout_marginTop="135dp"/>
+
+    <AutoCompleteTextView
+        android:id="@+id/annotationCat1"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="150dp"
+        android:layout_marginEnd="24dp"
+        android:textSize="24dp"
+        android:gravity="center"
+        android:hint="@string/cat1"
+        android:textColorHint="@color/hint_color"
+        android:textColor="@color/black"/>
+
+    <AutoCompleteTextView
+        android:id="@+id/annotationCat2"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="200dp"
+        android:layout_marginEnd="24dp"
+        android:textSize="24dp"
+        android:gravity="center"
+        android:hint="@string/cat2"
+        android:textColorHint="@color/hint_color"
+        android:textColor="@color/black"/>
+
+    <AutoCompleteTextView
+        android:id="@+id/annotationCat3"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="250dp"
+        android:layout_marginEnd="24dp"
+        android:textSize="24dp"
+        android:gravity="center"
+        android:hint="@string/cat3"
+        android:textColorHint="@color/hint_color"
+        android:textColor="@color/black"/>
+
+    <View android:background="@color/purple_500"
+        android:layout_width = "match_parent"
+        android:layout_height="3dp"
+        android:layout_marginTop="310dp"/>
+
+    <EditText
+        android:id="@+id/annotationComments"
+        android:layout_width="match_parent"
+        android:layout_height="250dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="325dp"
+        android:layout_marginEnd="24dp"
+        android:textSize="24dp"
+        android:gravity="center"
+        android:hint="@string/annotation_comments"
+        android:textColorHint="@color/hint_color"
+        android:textColor="@color/black"/>
+
+    <View android:background="@color/purple_500"
+        android:layout_width = "match_parent"
+        android:layout_height="3dp"
+        android:layout_marginTop="585dp"/>
+
+    <Button
+        android:id="@+id/submitAnnotationDataButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/annotation_button"
+        android:layout_marginTop="625dp"
+        android:layout_gravity="center_horizontal"/>
+
+</FrameLayout>

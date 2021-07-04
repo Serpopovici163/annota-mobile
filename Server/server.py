@@ -1,5 +1,3 @@
-import sqlite3
-from sqlite3 import Error
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 #our files
@@ -8,15 +6,6 @@ import login
 import transcription
 
 conn = None
-
-def create_connection(db_file):
-    conn = None
-    try:
-        conn = sqlite3.connect(db_file)
-    except Error as e:
-        print(e)
-
-    return conn
 
 def handleRequest(data):
     data_split = data.split(';')
@@ -48,6 +37,9 @@ def handleRequest(data):
     elif (data_split[0] == 'TRANSCRIBE'):
         essentials.message(1, "Received TRANSCRIBE request")
         return transcription.transcribeImage(conn, data_split[1], data_split[2], data_split[3], data_split[4])
+    elif (data_split[0] == 'TRANSCRIBE_INFO'):
+        essentials.message(1, "Received TRANSCRIBE_INFO request")
+        return transcription.completeTranscription(conn, data_split[1], data_split[2], data_split[3], data_split[4], data_split[5], data_split[6], data_split[7], data_split[8])
     else:
         essentials.message(3, "Invalid request type")
         essentials.message(1, data)
@@ -75,7 +67,7 @@ class MyServer (BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(bytes(response,'utf-8'))    
 
-conn = create_connection(essentials.database)
+conn = essentials.create_connection(essentials.database)
 webServer = HTTPServer((essentials.hostName, essentials.serverPort), MyServer)
 print("Server started http://%s:%s" % (essentials.hostName, essentials.serverPort))
 

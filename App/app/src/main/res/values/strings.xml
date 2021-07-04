@@ -21,4 +21,14 @@
     <string name="no_internet">No response from server, check your internet?</string>
     <string name="incomplete_form">Please fill out all fields in form</string>
     <string name="photo_button">Take Photo</string>
+    <string name="empty_annotation">Annotation contains no discernible text!</string>
+    <string name="server_error">Server error! Please try again later.</string>
+    <string name="annotation_name">Name your annotation!</string>
+    <string name="annotation_comments">Comments (why/how is this relevant?)</string>
+    <string name="cat1">Main Category</string>
+    <string name="cat2">Subcategory 1</string>
+    <string name="cat3">Subcategory 2</string>
+    <string name="annotation_button">Finalize Annotation</string>
+
+    <string name="incompleteAnnotationData">Please complete every field!</string>
 </resources>

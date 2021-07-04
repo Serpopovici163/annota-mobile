@@ -13,6 +13,8 @@ public class DataRepository {
     public static String bad_login = "INVALID_LOGIN";
     public static String logout_ok = "LOGOUT_DONE";
     public static String registration_error = "REGISTRATION_ERROR";
+    public static String transcribe_empty = "TRANSCRIBE_EMPTY";
+    public static String request_ok = "REQUEST_OK";
 
     //random
     public static float penSize = 20; //pen color is in colors.xml

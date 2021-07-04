@@ -1,8 +1,20 @@
+import sqlite3
+from sqlite3 import Error
+
 #all global static variables and some basic functions
 
 hostName = "192.168.23.195"
 serverPort = 8080
 database = r"annota.db"
+
+def create_connection(db_file):
+    conn = None
+    try:
+        conn = sqlite3.connect(db_file)
+    except Error as e:
+        print(e)
+
+    return conn
 
 def message(priority, message):
     if (priority == 1):

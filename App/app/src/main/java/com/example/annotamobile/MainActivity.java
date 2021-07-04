@@ -1,9 +1,7 @@
 package com.example.annotamobile;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.MotionEvent;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GestureDetectorCompat;
@@ -24,7 +22,9 @@ import java.util.Objects;
 
 import cz.msebera.android.httpclient.Header;
 
-import static com.example.annotamobile.DataRepository.*;
+import static com.example.annotamobile.DataRepository.auth_key_filename;
+import static com.example.annotamobile.DataRepository.auth_key_ok;
+import static com.example.annotamobile.DataRepository.server_url;
 
 public class MainActivity extends AppCompatActivity {
 

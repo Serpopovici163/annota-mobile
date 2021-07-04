@@ -4,15 +4,13 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 
-import com.example.annotamobile.ui.dashboard.DashboardFragment;
-
 import static com.example.annotamobile.MainActivity.getCurrentScreen;
 import static com.example.annotamobile.MainActivity.getNavView;
 
 public class GestureListener extends GestureDetector.SimpleOnGestureListener {
 
-    private static int MIN_SWIPE_DIST_X = 100;
-    private static int MIN_SWIPE_DIST_Y = 100;
+    private static int MIN_SWIPE_DIST_X = 500;
+    private static int MIN_SWIPE_DIST_Y = 500;
 
     private static int MAX_SWIPE_DIST_X = 1000;
     private static int MAX_SWIPE_DIST_Y = 1000;
@@ -31,8 +29,9 @@ public class GestureListener extends GestureDetector.SimpleOnGestureListener {
     public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
 
         //before we do anything let's check if the user is cropping an image in which case we will ignore any swipes as they may be drawing
-        if (getActivity().findViewById(R.id.pictureView).getVisibility() == View.VISIBLE)
-            return false;
+        if (getActivity().findViewById(R.id.pictureView) != null)
+            if (getActivity().findViewById(R.id.pictureView).getVisibility() == View.VISIBLE)
+                return false;
 
         float deltaX = e1.getX() - e2.getX();
         float deltaY = e1.getY() - e2.getY();

@@ -1,21 +1,21 @@
 package com.example.annotamobile.ui.dashboard;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Base64;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.RelativeLayout;
+import android.widget.Toast;
 
-import androidx.annotation.ColorInt;
 import androidx.annotation.NonNull;
 import androidx.camera.core.CameraSelector;
 import androidx.camera.core.ImageCapture;
@@ -27,7 +27,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
-import com.example.annotamobile.DataRepository;
+import com.example.annotamobile.AnnotationFragment;
 import com.example.annotamobile.FileIO;
 import com.example.annotamobile.R;
 import com.example.annotamobile.databinding.FragmentDashboardBinding;
@@ -72,6 +72,7 @@ public class DashboardFragment extends Fragment implements View.OnClickListener 
     private ImageButton send_button;
     private TouchImageView pictureView = null;
     private CameraSelector cameraSelector;
+    private RelativeLayout progressBar;
 
     private boolean hasCameraPermission() {
         return ContextCompat.checkSelfPermission(
@@ -152,6 +153,7 @@ public class DashboardFragment extends Fragment implements View.OnClickListener 
         //initialize pictureView and buttons once previewView is live
         pictureView = binding.getRoot().findViewById(R.id.pictureView);
         drawingView = binding.getRoot().findViewById(R.id.drawingView);
+        progressBar = binding.getRoot().findViewById(R.id.loadingPanel);
 
         take_photo = binding.getRoot().findViewById(R.id.take_photo);
         take_photo.setOnClickListener(this);
@@ -210,6 +212,17 @@ public class DashboardFragment extends Fragment implements View.OnClickListener 
 
             case R.id.cancel_button:
 
+                //first lets check if the drawing view is empty
+                drawingView.setDrawingCacheEnabled(true);
+                Bitmap drawing = Bitmap.createBitmap(drawingView.getDrawingCache());
+                drawingView.setDrawingCacheEnabled(false);
+                Bitmap emptyBitmap = Bitmap.createBitmap(drawing.getWidth(), drawing.getHeight(), drawing.getConfig());
+
+                if (!drawing.sameAs(emptyBitmap)) { //if there is some drawing, the cancel button will first clear the drawing before deleting the picture
+                    drawingView.clear();
+                    break;
+                }
+
                 //just swap back to the old view
                 take_photo.setVisibility(View.VISIBLE);
                 previewView.setVisibility(View.VISIBLE);
@@ -218,6 +231,8 @@ public class DashboardFragment extends Fragment implements View.OnClickListener 
                 send_button.setVisibility(View.INVISIBLE);
                 pictureView.setVisibility(View.INVISIBLE);
                 drawingView.setVisibility(View.INVISIBLE);
+
+                break;
 
             case R.id.crop_button:
                 //crop button freezes pinch to zoom and allows user to draw
@@ -245,6 +260,12 @@ public class DashboardFragment extends Fragment implements View.OnClickListener 
                 pictureView.setDrawingCacheEnabled(false);
                 drawingView.setDrawingCacheEnabled(false);
 
+                //check if the userDrawing image is empty in which case we won't send it to the server
+                emptyBitmap = Bitmap.createBitmap(userDrawing.getWidth(), userDrawing.getHeight(), userDrawing.getConfig());
+
+                if (userDrawing.sameAs(emptyBitmap))
+                    userDrawing = null;
+
                 //we can now send both of these to the server
                 //we also need to obtain the local uuid to authenticate
                 FileIO fileIO = new FileIO();
@@ -252,11 +273,13 @@ public class DashboardFragment extends Fragment implements View.OnClickListener 
                 AsyncHttpClient client = new AsyncHttpClient();
                 RequestParams params = new RequestParams();
                 params.put("data", "TRANSCRIBE;" + file_data[0] + ";" + file_data[1] + ";" + imageToString(croppedImage) + ";" + imageToString(userDrawing));
+                progressBar.setVisibility(View.VISIBLE);
                 client.post(server_url, params, new AsyncHttpResponseHandler() {
 
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
                         //check response
+                        progressBar.setVisibility(View.INVISIBLE);
                         String response_string = new String(responseBody, StandardCharsets.UTF_8);
                         if (Objects.equals(response_string, auth_key_bad)) {
                             //auth key is no longer valid --> logout user
@@ -264,12 +287,19 @@ public class DashboardFragment extends Fragment implements View.OnClickListener 
                             instance.logout();
                         } else {
                             //auth key good, we can start parsing response
-                            Log.e("onSuccess", "Response [" + response_string + "]");
+                            if (Objects.equals(response_string.split(";")[0], transcribe_empty)) {
+                                //notify the user that Google did not find any text
+                                Toast.makeText(getContext(), R.string.empty_annotation, Toast.LENGTH_LONG).show();
+                            }
+                            //now lets open the annotation_details fragment to complete this request
+                            finalizeAnnotation(response_string.split(";")[1]);
                         }
                     }
 
                     @Override
                     public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
+                        progressBar.setVisibility(View.INVISIBLE);
+                        Toast.makeText(getContext(), R.string.server_error, Toast.LENGTH_LONG).show();
                         error.printStackTrace();
                     }
                 });
@@ -289,7 +319,20 @@ public class DashboardFragment extends Fragment implements View.OnClickListener 
         file.delete();
     }
 
+    private void finalizeAnnotation(String index) {
+        Bundle data = new Bundle();
+        data.putString("index", index);
+        AnnotationFragment annotFrag = new AnnotationFragment();
+        annotFrag.setArguments(data);
+        getActivity().getSupportFragmentManager().beginTransaction().replace(((ViewGroup)getView().getParent()).getId(), annotFrag).addToBackStack("annotFrag").commit();
+    }
+
     private String imageToString(Bitmap bitmap) { //converts a bitmap to a string so it can be sent to the server
+
+        //check if image is null in which case we will return an empty string
+        if (bitmap == null)
+            return "";
+
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, output);
         byte[] imageBytes = output.toByteArray();
