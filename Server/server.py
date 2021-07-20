@@ -9,6 +9,17 @@ conn = None
 
 def handleRequest(data):
     data_split = data.split(';')
+
+    #start off by authenticating request if it's not a LOGIN or REGISTER request
+    if not (data_split[0] == 'LOGIN' or data_split[0] == 'REGISTER'):
+        #first lets check if user auth key is valid
+        if not login.checkUID(conn, data_split[1], data_split[2]):
+            essentials.message(1, "Invalid AUTH KEY")
+            essentials.message(3, "REQUEST DENIED")
+            return "AUTH_KEY_DENIED"
+        else:
+            essentials.message(1, "REQUEST VALIDATED")
+
     if (data_split[0] == 'LOGIN'):
         #login request, email will be index 1 and password index 2
         essentials.message(1,"Received LOGIN request")
@@ -36,13 +47,25 @@ def handleRequest(data):
         return login.register(conn,data_split[1],data_split[2],data_split[3]) #args are: conn, email, password, name
     elif (data_split[0] == 'TRANSCRIBE'):
         essentials.message(1, "Received TRANSCRIBE request")
-        return transcription.transcribeImage(conn, data_split[1], data_split[2], data_split[3], data_split[4])
+        return transcription.transcribeImage(conn, data_split[1], data_split[3], data_split[4])
     elif (data_split[0] == 'TRANSCRIBE_INFO'):
         essentials.message(1, "Received TRANSCRIBE_INFO request")
-        return transcription.completeTranscription(conn, data_split[1], data_split[2], data_split[3], data_split[4], data_split[5], data_split[6], data_split[7], data_split[8])
+        return transcription.completeTranscription(conn, data_split[1], data_split[3], data_split[4], data_split[5], data_split[6], data_split[7], data_split[8])
+    elif (data_split[0] == 'SEARCH'):
+        essentials.message(1, "Received SEARCH request")
+        return transcription.search(conn, data_split[1], data_split[3], data_split[4], data_split[5], data_split[6])
+    elif (data_split[0] == 'GET_CAT_LIST'):
+        essentials.message(1, "Received GET_CAT_LIST request")
+        return transcription.handleCatRequest(conn, data_split[1])
+    elif (data_split[0] == 'GET_THUMBNAIL'):
+        essentials.message(1, "Received GET_THUMBNAIL request")
+        return transcription.getThumbnail(conn, data_split[1], data_split[3])
+    elif (data_split[0] == 'UPDATE_ITEM'):
+        essentials.message(1, "Received UPDATE_ITEM request")
+        return transcription.updateItem(conn, data_split[1], data_split[3], data_split[4], data_split[5], data_split[6], data_split[7], data_split[8], data_split[9])
     else:
         essentials.message(3, "Invalid request type")
-        essentials.message(1, data)
+        essentials.message(3, "DATA --> [" + data + "]")
         return "INVALID_REQUEST_TYPE"
 
 class MyServer (BaseHTTPRequestHandler):

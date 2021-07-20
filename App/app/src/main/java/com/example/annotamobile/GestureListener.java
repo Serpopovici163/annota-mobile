@@ -4,13 +4,18 @@ import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 
+import androidx.fragment.app.Fragment;
+
+import com.example.annotamobile.ui.library.LibraryFragment;
+import com.example.annotamobile.ui.settings.SettingsFragment;
+
 import static com.example.annotamobile.MainActivity.getCurrentScreen;
 import static com.example.annotamobile.MainActivity.getNavView;
 
 public class GestureListener extends GestureDetector.SimpleOnGestureListener {
 
-    private static int MIN_SWIPE_DIST_X = 500;
-    private static int MIN_SWIPE_DIST_Y = 500;
+    private static int MIN_SWIPE_DIST_X = 300;
+    private static int MIN_SWIPE_DIST_Y = 300;
 
     private static int MAX_SWIPE_DIST_X = 1000;
     private static int MAX_SWIPE_DIST_Y = 1000;
@@ -66,8 +71,16 @@ public class GestureListener extends GestureDetector.SimpleOnGestureListener {
         if (deltaYAbs >= MIN_SWIPE_DIST_Y && deltaYAbs <= MAX_SWIPE_DIST_Y) {
             if (deltaY > 0) {
                 //up
+                Fragment libraryFragment = new LibraryFragment(); //Might be buggy but this took me two hours so fuck it, gestureListener doesn't have access to things like getView() so changing a fragment was a pain
+                getNavView().setVisibility(View.INVISIBLE);
+                getActivity().getSupportActionBar().setTitle(R.string.title_library);
+                getActivity().getSupportFragmentManager().beginTransaction().replace(getActivity().getSupportFragmentManager().getFragments().get(0).getId(), libraryFragment).addToBackStack("libraryFragment").commit();
             } else {
                 //down
+                Fragment settingsFragment = new SettingsFragment();
+                getNavView().setVisibility(View.INVISIBLE);
+                getActivity().getSupportActionBar().setTitle(R.string.title_settings);
+                getActivity().getSupportFragmentManager().beginTransaction().replace(getActivity().getSupportFragmentManager().getFragments().get(0).getId(), settingsFragment).addToBackStack("settingsFragment").commit();
             }
         }
 

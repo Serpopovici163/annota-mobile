@@ -7,8 +7,8 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingBottom="@dimen/activity_vertical_margin"
-    android:background="@color/design_default_color_background"
-    tools:context=".AnnotationFragment">
+    android:background="@color/black"
+    tools:context=".ui.dashboard.AnnotationFragment">
 
 
     <EditText
@@ -20,9 +20,7 @@
         android:layout_marginEnd="24dp"
         android:textSize="24dp"
         android:gravity="center"
-        android:hint="@string/annotation_name"
-        android:textColorHint="@color/hint_color"
-        android:textColor="@color/black"/>
+        android:hint="@string/annotation_name" />
 
     <View android:background="@color/purple_500"
         android:layout_width = "match_parent"
@@ -38,9 +36,7 @@
         android:layout_marginEnd="24dp"
         android:textSize="24dp"
         android:gravity="center"
-        android:hint="@string/cat1"
-        android:textColorHint="@color/hint_color"
-        android:textColor="@color/black"/>
+        android:hint="@string/cat1" />
 
     <AutoCompleteTextView
         android:id="@+id/annotationCat2"
@@ -51,9 +47,7 @@
         android:layout_marginEnd="24dp"
         android:textSize="24dp"
         android:gravity="center"
-        android:hint="@string/cat2"
-        android:textColorHint="@color/hint_color"
-        android:textColor="@color/black"/>
+        android:hint="@string/cat2" />
 
     <AutoCompleteTextView
         android:id="@+id/annotationCat3"
@@ -64,9 +58,7 @@
         android:layout_marginEnd="24dp"
         android:textSize="24dp"
         android:gravity="center"
-        android:hint="@string/cat3"
-        android:textColorHint="@color/hint_color"
-        android:textColor="@color/black"/>
+        android:hint="@string/cat3" />
 
     <View android:background="@color/purple_500"
         android:layout_width = "match_parent"
@@ -82,9 +74,7 @@
         android:layout_marginEnd="24dp"
         android:textSize="24dp"
         android:gravity="center"
-        android:hint="@string/annotation_comments"
-        android:textColorHint="@color/hint_color"
-        android:textColor="@color/black"/>
+        android:hint="@string/annotation_comments" />
 
     <View android:background="@color/purple_500"
         android:layout_width = "match_parent"

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/sort_type_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:text="@string/criteria_type_prompt"></TextView>
+
+    <Space
+        android:layout_below="@id/sort_type_title"
+        android:id="@+id/space1"
+        android:layout_width="match_parent"
+        android:layout_height="10dp"></Space>
+
+    <Spinner
+        android:id="@+id/sort_type_dropdown"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/space1"
+        android:gravity="center_horizontal"
+        android:entries="@array/sort_type_list"
+        android:spinnerMode="dropdown"></Spinner>
+
+</RelativeLayout>

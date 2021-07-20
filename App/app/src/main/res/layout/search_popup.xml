@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="20dp">
+
+    <TextView
+        android:id="@+id/criteria_type_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:text="@string/criteria_type_prompt"></TextView>
+
+    <Space
+        android:layout_below="@id/criteria_type_title"
+        android:id="@+id/space1"
+        android:layout_width="match_parent"
+        android:layout_height="10dp"></Space>
+
+    <Spinner
+        android:id="@+id/criteria_type_dropdown"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/space1"
+        android:gravity="center_horizontal"
+        android:entries="@array/criteria_type_list"
+        android:spinnerMode="dropdown"></Spinner>
+
+    <Space
+        android:layout_below="@id/criteria_type_dropdown"
+        android:id="@+id/space2"
+        android:layout_width="match_parent"
+        android:layout_height="10dp"></Space>
+
+    <View android:background="@color/purple_500"
+        android:layout_width = "match_parent"
+        android:layout_height="3dp"
+        android:layout_below="@id/space2"/>
+
+    <Space
+        android:layout_below="@id/space2"
+        android:id="@+id/space3"
+        android:layout_width="match_parent"
+        android:layout_height="13dp"></Space>
+
+    <LinearLayout
+        android:id="@+id/search_data_placeholder"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_below="@id/space3"></LinearLayout>
+
+</RelativeLayout>

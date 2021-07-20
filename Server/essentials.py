@@ -42,3 +42,18 @@ def removeHex(data):
         else:
             data = data.replace(searchString, bytes.fromhex(string).decode("utf-8"))
     return data
+
+def removeNoneType(data):
+    if data == None:
+        return ""
+    else:
+        return str(data)
+
+def sqlToString(sql):
+    result = ""
+    for data in sql:
+        if result == "":
+            result = removeNoneType(data)
+        else:
+            result = result + "&" + removeNoneType(data)
+    return result

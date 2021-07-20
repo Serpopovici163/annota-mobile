@@ -1,7 +1,6 @@
 package com.example.annotamobile.ui.dashboard;
 
 import android.Manifest;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -14,7 +13,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.camera.core.CameraSelector;
@@ -27,15 +25,10 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
-import com.example.annotamobile.AnnotationFragment;
-import com.example.annotamobile.FileIO;
 import com.example.annotamobile.R;
 import com.example.annotamobile.databinding.FragmentDashboardBinding;
-import com.example.annotamobile.ui.login.LoginActivity;
+import com.example.annotamobile.ui.NetworkIO;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.AsyncHttpResponseHandler;
-import com.loopj.android.http.RequestParams;
 import com.mukesh.DrawingView;
 import com.ortiz.touchview.TouchImageView;
 
@@ -44,14 +37,11 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 
-import cz.msebera.android.httpclient.Header;
-
-import static com.example.annotamobile.DataRepository.*;
+import static com.example.annotamobile.DataRepository.penSize;
+import static com.example.annotamobile.DataRepository.temp_pic_filename;
 
 public class DashboardFragment extends Fragment implements View.OnClickListener {
 
@@ -267,42 +257,14 @@ public class DashboardFragment extends Fragment implements View.OnClickListener 
                     userDrawing = null;
 
                 //we can now send both of these to the server
-                //we also need to obtain the local uuid to authenticate
-                FileIO fileIO = new FileIO();
-                String[] file_data = fileIO.readFromFile(auth_key_filename, getContext()).split(";");
-                AsyncHttpClient client = new AsyncHttpClient();
-                RequestParams params = new RequestParams();
-                params.put("data", "TRANSCRIBE;" + file_data[0] + ";" + file_data[1] + ";" + imageToString(croppedImage) + ";" + imageToString(userDrawing));
-                progressBar.setVisibility(View.VISIBLE);
-                client.post(server_url, params, new AsyncHttpResponseHandler() {
-
+                NetworkIO networkIO = new NetworkIO();
+                networkIO.transcribe(getContext(), progressBar, imageToString(croppedImage), imageToString(userDrawing), new NetworkIO.NetworkIOListener() {
                     @Override
-                    public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                        //check response
-                        progressBar.setVisibility(View.INVISIBLE);
-                        String response_string = new String(responseBody, StandardCharsets.UTF_8);
-                        if (Objects.equals(response_string, auth_key_bad)) {
-                            //auth key is no longer valid --> logout user
-                            LoginActivity instance = new LoginActivity();
-                            instance.logout();
-                        } else {
-                            //auth key good, we can start parsing response
-                            if (Objects.equals(response_string.split(";")[0], transcribe_empty)) {
-                                //notify the user that Google did not find any text
-                                Toast.makeText(getContext(), R.string.empty_annotation, Toast.LENGTH_LONG).show();
-                            }
-                            //now lets open the annotation_details fragment to complete this request
-                            finalizeAnnotation(response_string.split(";")[1]);
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(int statusCode, Header[] headers, byte[] responseBody, Throwable error) {
-                        progressBar.setVisibility(View.INVISIBLE);
-                        Toast.makeText(getContext(), R.string.server_error, Toast.LENGTH_LONG).show();
-                        error.printStackTrace();
+                    public void onSuccess(@Nullable String[] data) {
+                        finalizeAnnotation(data[0], data[1], data[2], data[3]);
                     }
                 });
+
 
                 //just swap back to the old view
                 take_photo.setVisibility(View.VISIBLE);
@@ -319,12 +281,15 @@ public class DashboardFragment extends Fragment implements View.OnClickListener 
         file.delete();
     }
 
-    private void finalizeAnnotation(String index) {
+    private void finalizeAnnotation(String index, String cat1, String cat2, String cat3) {
         Bundle data = new Bundle();
         data.putString("index", index);
+        data.putString("cat1", cat1);
+        data.putString("cat2", cat2);
+        data.putString("cat3", cat3);
         AnnotationFragment annotFrag = new AnnotationFragment();
         annotFrag.setArguments(data);
-        getActivity().getSupportFragmentManager().beginTransaction().replace(((ViewGroup)getView().getParent()).getId(), annotFrag).addToBackStack("annotFrag").commit();
+        requireActivity().getSupportFragmentManager().beginTransaction().replace(((ViewGroup)requireView().getParent()).getId(), annotFrag).addToBackStack("annotFrag").commit();
     }
 
     private String imageToString(Bitmap bitmap) { //converts a bitmap to a string so it can be sent to the server

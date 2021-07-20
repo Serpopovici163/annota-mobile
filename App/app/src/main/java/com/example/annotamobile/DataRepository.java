@@ -4,6 +4,7 @@ public class DataRepository {
     //this class only contains variables relevant to the code, all text is stored in res/values/strings.xml
     public static String server_url = "http://ludicroustech.ca:8080";
     public static String auth_key_filename = "auth.key";
+    public static String pref_filename = "pref.dat";
     public static String temp_pic_filename = "temp.jpg";
 
     //server codes, writing these as vars since they may change in the future

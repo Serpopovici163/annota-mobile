@@ -69,7 +69,7 @@ def checkUID(conn, uuid, name):
 
 def logout(conn, uuid, name):
     #first we obtain uuids associated with given name and then we can proceed to delete the uuid if it exists
-    sql = "SELECT uids FROM user_data WHERE name=" + name.replace("+", " ")
+    sql = "SELECT uids FROM user_data WHERE name=\"" + name.replace("+", " ") + "\""
     cur = conn.cursor()
     cur.execute(sql)
     active_uuids = cur.fetchall()[0][0].split("/")
@@ -91,6 +91,8 @@ def logout(conn, uuid, name):
     cur = conn.cursor()
     cur.execute(sql)
     conn.commit()
+
+    return "REQUEST_OK"
 
 def register(conn, email, password, name) :
     name = name.replace("+", " ") #just in case android is on its bullshit again

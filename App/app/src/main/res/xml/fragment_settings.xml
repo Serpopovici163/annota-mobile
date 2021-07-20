@@ -1,0 +1,46 @@
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory
+        android:title="@string/pref_general_title">
+
+        <SwitchPreferenceCompat
+            app:key="notifications"
+            app:title="@string/pref_notif"/>
+
+        <ListPreference
+            android:key="language"
+            android:title="@string/pref_lang"
+            app:useSimpleSummaryProvider="true"
+            android:entries="@array/language_list"
+            android:entryValues="@array/language_values" />
+
+        <ListPreference
+            android:key="colour"
+            android:title="@string/pref_colour_title"
+            app:useSimpleSummaryProvider="true"
+            android:entries="@array/colour_list"
+            android:entryValues="@array/colour_values" />
+
+        <Preference
+            app:key="logout"
+            app:title="@string/pref_logout_title"
+            app:summary="@string/pref_fb_summary"/>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        android:title="@string/pref_about">
+
+        <Preference
+            app:key="version_info"
+            app:title="@string/pref_version"/>
+
+        <Preference
+            app:key="feedback"
+            app:title="@string/pref_fb_title"
+            app:summary="@string/pref_fb_summary"/>
+
+    </PreferenceCategory>
+
+</PreferenceScreen>

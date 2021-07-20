@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:focusable="true"
+    android:focusableInTouchMode="true">
+
+    <!-- cat1 -->
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:text="@string/by_category_cat1"></TextView>
+
+    <Space
+        android:layout_below="@id/title"
+        android:id="@+id/space2_1"
+        android:layout_width="match_parent"
+        android:layout_height="10dp"></Space>
+
+    <AutoCompleteTextView
+        android:id="@+id/cat1_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/space2_1"></AutoCompleteTextView>
+
+    <Space
+        android:layout_below="@id/cat1_content"
+        android:id="@+id/space2_2"
+        android:layout_width="match_parent"
+        android:layout_height="10dp"></Space>
+
+    <!-- cat2 -->
+
+    <TextView
+        android:id="@+id/title1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/space2_2"
+        android:gravity="center_horizontal"
+        android:text="@string/by_category_cat2"></TextView>
+
+    <Space
+        android:layout_below="@id/title1"
+        android:id="@+id/space2_3"
+        android:layout_width="match_parent"
+        android:layout_height="10dp"></Space>
+
+    <AutoCompleteTextView
+        android:id="@+id/cat2_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/space2_3"></AutoCompleteTextView>
+
+    <Space
+        android:layout_below="@id/cat2_content"
+        android:id="@+id/space2_4"
+        android:layout_width="match_parent"
+        android:layout_height="10dp"></Space>
+
+    <!-- cat3 -->
+
+    <TextView
+        android:id="@+id/title2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/space2_4"
+        android:gravity="center_horizontal"
+        android:text="@string/by_category_cat3"></TextView>
+
+    <Space
+        android:layout_below="@id/title2"
+        android:id="@+id/space2_5"
+        android:layout_width="match_parent"
+        android:layout_height="10dp"></Space>
+
+    <AutoCompleteTextView
+        android:id="@+id/cat3_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/space2_5"></AutoCompleteTextView>
+
+</RelativeLayout>

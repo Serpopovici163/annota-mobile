@@ -1,12 +1,30 @@
 <resources>
-    <!-- Reply Preference -->
-    <string-array name="reply_entries">
-        <item>Reply</item>
-        <item>Reply to all</item>
+    <!-- Preferences fragment -->
+    <string-array name="language_list">
+        <item>English</item>
+        <item>Français</item>
+    </string-array>
+    <string-array name="language_values">
+        <item>en</item>
+        <item>fr</item>
+    </string-array>
+    <string-array name="colour_list">
+        <item>Light</item>
+        <item>Dark</item>
+    </string-array>
+    <string-array name="colour_values">
+        <item>li</item>
+        <item>dk</item>
     </string-array>
 
-    <string-array name="reply_values">
-        <item>reply</item>
-        <item>reply_all</item>
+    <!-- Library fragment -->
+    <string-array name="criteria_type_list">
+        <item>Search by content</item>
+        <item>Search by category</item>
+        <item>Search by date</item>
+    </string-array>
+    <string-array name="sort_type_list">
+        <item>Sort by name</item>
+        <item>Sort by date</item>
     </string-array>
 </resources>

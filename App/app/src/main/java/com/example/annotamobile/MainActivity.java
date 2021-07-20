@@ -2,29 +2,23 @@ package com.example.annotamobile;
 
 import android.os.Bundle;
 import android.view.MotionEvent;
+import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GestureDetectorCompat;
+import androidx.fragment.app.FragmentManager;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 
 import com.example.annotamobile.databinding.ActivityMainBinding;
-import com.example.annotamobile.ui.login.LoginActivity;
+import com.example.annotamobile.ui.NetworkIO;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.AsyncHttpResponseHandler;
-import com.loopj.android.http.RequestParams;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Objects;
+import org.jetbrains.annotations.Nullable;
 
-import cz.msebera.android.httpclient.Header;
-
-import static com.example.annotamobile.DataRepository.auth_key_filename;
-import static com.example.annotamobile.DataRepository.auth_key_ok;
-import static com.example.annotamobile.DataRepository.server_url;
+import static androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -70,43 +64,38 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         //every time app resumes, it will double check its auth key to ensure it is logged in
-        try {
-            FileIO fileIO = new FileIO();
-            String[] file_data = fileIO.readFromFile(auth_key_filename, getApplicationContext()).split(";");
-            if (file_data[0] != "") {
-                //send request to server
-                AsyncHttpClient client = new AsyncHttpClient();
-                RequestParams params = new RequestParams();
-                params.put("data", "KEYCHECK;" + file_data[0] + ";" + file_data[1]);
-                client.post(server_url, params, new AsyncHttpResponseHandler() {
-                    @Override
-                    public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
-                        //check response
-                        String response_string = new String(responseBody, StandardCharsets.UTF_8);
-                        if (Objects.equals(response_string, auth_key_ok)) {
-                            //user is still logged in so we do nothing
-                            return;
-                        } else {
-                            LoginActivity instance = new LoginActivity();
-                            instance.logout();
-                        }
-                    }
+        NetworkIO networkIO = new NetworkIO();
+        networkIO.keycheck(getApplicationContext(), new NetworkIO.NetworkIOListener() {
+            @Override
+            public void onSuccess(@Nullable String[] data) {
 
-                    @Override
-                    public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable error) {
-                        // called when response HTTP status is "4XX" (eg. 401, 403, 404)
-                        error.printStackTrace();
-                    }
-                });
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        });
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         gestureDetectorCompat.onTouchEvent(event);
         return true;
+    }
+
+    @Override
+    public void onBackPressed() {
+
+        String tag;
+
+        try {
+            //get top fragment
+            int index = getSupportFragmentManager().getBackStackEntryCount() - 1;
+            FragmentManager.BackStackEntry backEntry = getSupportFragmentManager().getBackStackEntryAt(index);
+            tag = backEntry.getName();
+        } catch (Exception e) {
+            return;
+        }
+
+        //make sure the nav bar is enabled again and remove the topmost fragment
+        getNavView().setVisibility(View.VISIBLE);
+        getSupportFragmentManager().popBackStack(tag, POP_BACK_STACK_INCLUSIVE);
+
     }
 }

@@ -1,44 +1,27 @@
 package com.example.annotamobile.ui.login;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.KeyEvent;
 import android.view.View;
-import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.Nullable;
-import androidx.annotation.StringRes;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.example.annotamobile.DataRepository;
-import com.example.annotamobile.FileIO;
 import com.example.annotamobile.MainActivity;
 import com.example.annotamobile.R;
 import com.example.annotamobile.databinding.ActivityLoginBinding;
-import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.AsyncHttpResponseHandler;
-import com.loopj.android.http.RequestParams;
+import com.example.annotamobile.ui.NetworkIO;
 
-import java.nio.charset.StandardCharsets;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.Objects;
-
-import cz.msebera.android.httpclient.Header;
-
-import static com.example.annotamobile.DataRepository.auth_key_filename;
-import static com.example.annotamobile.DataRepository.auth_key_ok;
-import static com.example.annotamobile.DataRepository.bad_request;
-import static com.example.annotamobile.DataRepository.registration_error;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -54,7 +37,6 @@ public class LoginActivity extends AppCompatActivity {
 
         binding = ActivityLoginBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
         loginViewModel = new ViewModelProvider(this, new LoginViewModelFactory())
                 .get(LoginViewModel.class);
 
@@ -65,42 +47,7 @@ public class LoginActivity extends AppCompatActivity {
         final Button loginButton = binding.login;
         final Button registerButton = binding.register;
         final ProgressBar loadingProgressBar = binding.loading;
-
-        loginViewModel.getLoginFormState().observe(this, new Observer<LoginFormState>() {
-            @Override
-            public void onChanged(@Nullable LoginFormState loginFormState) {
-                if (loginFormState == null) {
-                    return;
-                }
-                loginButton.setEnabled(loginFormState.isDataValid());
-                if (loginFormState.getUsernameError() != null) {
-                    usernameEditText.setError(getString(loginFormState.getUsernameError()));
-                }
-                if (loginFormState.getPasswordError() != null) {
-                    passwordEditText.setError(getString(loginFormState.getPasswordError()));
-                }
-            }
-        });
-
-        loginViewModel.getLoginResult().observe(this, new Observer<LoginResult>() {
-            @Override
-            public void onChanged(@Nullable LoginResult loginResult) {
-                if (loginResult == null) {
-                    return;
-                }
-                loadingProgressBar.setVisibility(View.GONE);
-                if (loginResult.getError() != null) {
-                    showLoginFailed(loginResult.getError());
-                }
-                if (loginResult.getSuccess() != null) {
-                    updateUiWithUser(loginResult.getSuccess());
-
-                    //Complete and destroy login activity once successful
-                    setResult(Activity.RESULT_OK);
-                    finish();
-                }
-            }
-        });
+        NetworkIO networkIO = new NetworkIO();
 
         TextWatcher afterTextChangedListener = new TextWatcher() {
             @Override
@@ -115,30 +62,27 @@ public class LoginActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                loginViewModel.loginDataChanged(usernameEditText.getText().toString(),
-                        passwordEditText.getText().toString());
+                if (loginViewModel.loginDataChanged(usernameEditText.getText().toString(), passwordEditText.getText().toString()))
+                    loginButton.setEnabled(true);
+                else
+                    loginButton.setEnabled(false);
             }
         };
         usernameEditText.addTextChangedListener(afterTextChangedListener);
         passwordEditText.addTextChangedListener(afterTextChangedListener);
-        passwordEditText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-
-            @Override
-            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
-                if (actionId == EditorInfo.IME_ACTION_DONE) {
-                    loginViewModel.login(usernameEditText.getText().toString(),
-                            passwordEditText.getText().toString(), getApplicationContext());
-                }
-                return false;
-            }
-        });
 
         loginButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 loadingProgressBar.setVisibility(View.VISIBLE);
-                loginViewModel.login(usernameEditText.getText().toString(),
-                        passwordEditText.getText().toString(), getApplicationContext());
+                NetworkIO networkIO = new NetworkIO();
+                networkIO.login(getApplicationContext(), usernameEditText.getText().toString(), passwordEditText.getText().toString(), new NetworkIO.NetworkIOListener() {
+                    @Override
+                    public void onSuccess(@Nullable String[] data) {
+                        loadingProgressBar.setVisibility(View.INVISIBLE);
+                        updateUiWithUser(getApplicationContext(), networkIO.getName(getApplicationContext()));
+                    }
+                });
             }
         });
 
@@ -164,43 +108,12 @@ public class LoginActivity extends AppCompatActivity {
                         //we'll jump to checking if password strings are the same before submitting a register request
                     } else if (Objects.equals(password, confirm_password)) {
                         //strings are equal so we can send a request
-                        try {
-                            AsyncHttpClient client = new AsyncHttpClient();
-                            RequestParams params = new RequestParams();
-                            params.put("data", "REGISTER;" + email + ";" + password + ";" + name);
-                            client.post(DataRepository.server_url, params, new AsyncHttpResponseHandler() {
-                                @Override
-                                public void onSuccess(int statusCode, Header[] headers, byte[] response) {
-                                    //check response
-                                    String response_string = new String(response, StandardCharsets.UTF_8);
-                                    if (!Objects.equals(response_string, registration_error) || !Objects.equals(response_string, bad_request)) {
-                                        //user registered successfully
-                                        FileIO fileIO = new FileIO();
-                                        fileIO.writeToFile(response_string, auth_key_filename, context);
-                                        updateUiWithUser(new LoggedInUserView(response_string.split(";")[1]));
-                                    } else {
-                                        //delete auth key file and notify user
-                                        Toast.makeText(getApplicationContext(), R.string.registration_failed, Toast.LENGTH_LONG).show();
-                                        //redirect to login screen
-                                        Intent loginActivity = new Intent(getApplicationContext(), LoginActivity.class);
-                                        startActivity(loginActivity);
-                                    }
-                                }
-
-                                @Override
-                                public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
-                                    // called when response HTTP status is "4XX" (eg. 401, 403, 404)
-                                    //Genuinely don't understand why a try/catch is needed here but Java's a bitch
-                                    try {
-                                        throw e;
-                                    } catch (Throwable throwable) {
-                                        throwable.printStackTrace();
-                                    }
-                                }
-                            });
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+                        networkIO.register(context, email, password, name, new NetworkIO.NetworkIOListener() {
+                            @Override
+                            public void onSuccess(@Nullable String[] data) {
+                                updateUiWithUser(context, networkIO.getName(context));
+                            }
+                        });
                     } else {
                         Toast.makeText(getApplicationContext(), R.string.passwords_not_equal, Toast.LENGTH_LONG).show();
                     }
@@ -208,70 +121,31 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        //now that all the listeners have been initialized, we'll check if auth.key file exists and submit AUTH KEY CHECK request if True
-        try {
-            FileIO fileIO = new FileIO();
-            String[] file_data = fileIO.readFromFile(auth_key_filename, getApplicationContext()).split(";");
-            if (file_data[0] != "") {
-                //send request to server
-                AsyncHttpClient client = new AsyncHttpClient();
-                RequestParams params = new RequestParams();
-                params.put("data", "KEYCHECK;" + file_data[0] + ";" + file_data[1]);
-                client.post(DataRepository.server_url, params, new AsyncHttpResponseHandler() {
-                    @Override
-                    public void onSuccess(int statusCode, Header[] headers, byte[] response) {
-                        //check response
-                        String response_string = new String(response, StandardCharsets.UTF_8);
-                        if (Objects.equals(response_string, auth_key_ok)) {
-                            //log in user
-                            updateUiWithUser(new LoggedInUserView(file_data[1]));
-                        } else {
-                            //delete auth key file and notify user
-                            Toast.makeText(getApplicationContext(), R.string.auto_login_failed, Toast.LENGTH_LONG).show();
-                            fileIO.deleteFile(auth_key_filename, getApplicationContext());
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(int statusCode, Header[] headers, byte[] errorResponse, Throwable e) {
-                        // called when response HTTP status is "4XX" (eg. 401, 403, 404)
-                        //Genuinely don't understand why a try/catch is needed here but Java's a bitch
-                        try {
-                            throw e;
-                        } catch (Throwable throwable) {
-                            throwable.printStackTrace();
-                        }
-                    }
-                });
+        //now that all the listeners have been initialized, we can finally check if the user has a valid auth key and therefore bypass the login screen
+        networkIO.keycheck(getApplicationContext(), new NetworkIO.NetworkIOListener() {
+            @Override
+            public void onSuccess(@Nullable String[] data) {
+                updateUiWithUser(context, networkIO.getName(context));
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        });
+
+
+        //if nothing happens then just make sure the text fields are clear
+        binding.username.setText("");
+        binding.password.setText("");
+        binding.confirmPassword.setText("");
+        binding.name.setText("");
     }
 
-    public void updateUiWithUser(LoggedInUserView view) {
-        String welcome = context.getResources().getString(R.string.login_ok_welcome) + " " + view.getDisplayName() + "!";
-        Toast.makeText(getApplicationContext(), welcome, Toast.LENGTH_LONG).show();
+    public void updateUiWithUser(Context context, String user_name) {
+        String welcome = context.getResources().getString(R.string.login_welcome) + " " + user_name + "!";
+        Toast.makeText(context, welcome, Toast.LENGTH_LONG).show();
 
-        Intent intent = new Intent(this, MainActivity.class);
+        Intent intent = new Intent(context, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        startActivity(intent);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        context.startActivity(intent);
     }
 
-    public void logout() { //delete auth key file and notify user
-        FileIO fileIO = new FileIO();
-        Toast.makeText(getApplicationContext(), R.string.logout, Toast.LENGTH_LONG).show();
-        fileIO.deleteFile(auth_key_filename, getApplicationContext());
-        //redirect to login screen
-        Intent loginActivity = new Intent(getApplicationContext(), LoginActivity.class);
-        startActivity(loginActivity);
-    }
 
-    public void showLoginFailed(@StringRes Integer errorString) {
-        Toast.makeText(getApplicationContext(), errorString, Toast.LENGTH_SHORT).show();
-    }
-
-    public static Context getLoginContext() {
-        return LoginActivity.context;
-    }
 }
